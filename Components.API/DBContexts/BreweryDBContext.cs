@@ -1,4 +1,5 @@
 ﻿using Components.API.Models;
+using Components.API.Utilities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Components.API.DBContexts
@@ -9,15 +10,23 @@ namespace Components.API.DBContexts
 
         private string ConnectionString { get; set; }
 
-        public BreweryDBContext(IConfiguration appConfig)
-        {
-            // Pull connection string from AppSettings Configuration
-            ConnectionString = appConfig.GetValue<string>("DbConnectionString");
+        IConfiguration _configuration { get; set; }
+
+        public BreweryDBContext(DbContextOptions<BreweryDBContext> options, IConfiguration configuration): base(options) 
+        { 
+            _configuration = configuration;
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(ConnectionString);
+
+            optionsBuilder.UseSqlServer(_configuration.GetConnectionString(BreweryAPIConstants.CONSTANT_BREWERY_API_DB_CONNECTION_STRING));
         }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Beer>().ToTable("Beers");
+        }
+
     }
 }
